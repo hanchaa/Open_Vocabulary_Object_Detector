@@ -57,6 +57,9 @@ for x_batch, y_batch in tqdm(test_loader):
 
     corrected += predicted.eq(target).sum().item()
 
+similarity_all = torch.cat(similarity_all)
+predicted_all = torch.cat(predicted_all)
+
 print(similarity_all)
-print(predicted_all)
+print(predicted_all.view(5, 10))
 print(corrected / len(test_data))
