@@ -1,9 +1,10 @@
 import clip
 import torch
-import matplotlib.pyplot as plt
+from torch.utils.data import DataLoader
 from clip.clip import _convert_image_to_rgb
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import Compose, Resize, InterpolationMode, ToTensor, Normalize
+from tqdm import tqdm
 
 print(clip.available_models())
 
@@ -19,30 +20,28 @@ preprocess = Compose([
     ])
 
 test_data = ImageFolder(root="./dataset/challenge", transform=preprocess)
+test_loader = DataLoader(test_data, batch_size=64, shuffle=False)
 
-plt.imshow(test_data[20][0].permute(1, 2, 0).numpy())
-plt.show()
+prompt = [
+    "reflected mannequin",
+    "reflected person",
+    "mannequin",
+    "person",
+    "printed person image"
+]
+text_inputs = torch.cat([clip.tokenize(c) for c in prompt]).to(device)
 
-print(test_data[20][1])
+with torch.no_grad():
+    text_features = model.encode_text(text_inputs)
 
-# sampled = random.randint(0, len(cifar100) - 1)
-#
-# # Prepare the inputs
-# image, class_id = cifar100[sampled]
-# image = Image.open("./dataset/challenge/mannequin/2.png")
-# image.show()
-#
-# image_input = preprocess(image).unsqueeze(0).to(device)
-#
-# text_inputs = torch.cat([clip.tokenize(f"a photo of {c}") for c in ["person not a mannequin", "mannequin"]]).to(device)
-#
-# # Calculate features
-# with torch.no_grad():
-#     image_features = model.encode_image(image_input)
-#     text_features = model.encode_text(text_inputs)
-#
-# # Pick the top 5 most similar labels for the image
-# image_features /= image_features.norm(dim=-1, keepdim=True)
-# text_features /= text_features.norm(dim=-1, keepdim=True)
-# similarity = (100.0 * image_features @ text_features.T).softmax(dim=-1)
-# print(similarity[0])
+for x_batch, y_batch in tqdm(test_loader):
+    image_inputs = x_batch.to(device)
+
+    # Calculate features
+    with torch.no_grad():
+        image_features = model.encode_image(image_inputs)
+
+    image_features /= image_features.norm(dim=-1, keepdim=True)
+    text_features /= text_features.norm(dim=-1, keepdim=True)
+    similarity = (100.0 * image_features @ text_features.T).softmax(dim=-1)
+    print(similarity)
