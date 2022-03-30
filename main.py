@@ -10,7 +10,7 @@ print(clip.available_models())
 
 # Load the model
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model, _ = clip.load('RN50', device)
+model, _ = clip.load('ViT-B/32', device)
 
 preprocess = Compose([
         Resize((224, 224), interpolation=InterpolationMode.BICUBIC),
@@ -23,8 +23,8 @@ test_data = ImageFolder(root="./dataset/challenge", transform=preprocess)
 test_loader = DataLoader(test_data, batch_size=64, shuffle=False)
 
 prompt = [
-    "reflected mannequin",
-    "reflected person",
+    "mannequin reflected by mirror",
+    "person reflected by mirror",
     "mannequin",
     "person",
     "printed person image"
