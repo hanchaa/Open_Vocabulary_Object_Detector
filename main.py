@@ -22,17 +22,20 @@ if __name__ == "__main__":
             Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)),
         ])
 
+    # Prepare test data
     test_data = ImageFolder(root="./dataset/challenge", transform=preprocess)
     test_loader = DataLoader(test_data, batch_size=64, shuffle=False)
 
-    prompt = [
-        "mannequin reflected by mirror",
-        "person reflected by mirror",
-        "mannequin",
-        "person",
-        "printed person image"
+    # Prepare prompts for labels
+    num_try = 1
+    prompts = [
+        "a photo of mannequin reflected by mirror",
+        "a photo of person reflected by mirror",
+        "a photo of mannequin not a person",
+        "a photo of person not a mannequin",
+        "a photo of printed person image"
     ]
-    text_inputs = torch.cat([clip.tokenize(c) for c in prompt]).to(device)
+    text_inputs = torch.cat([clip.tokenize(c) for c in prompts]).to(device)
 
     with torch.no_grad():
         text_features = model.encode_text(text_inputs)
@@ -63,4 +66,12 @@ if __name__ == "__main__":
     similarity_all = torch.cat(similarity_all)
     predicted_all = torch.cat(predicted_all)
 
-    visualize(similarity_all, 10, 0)
+    print(f"{(corrected / len(test_data)) * 100}%")
+
+    visualize(similarity_all, 10, num_try)
+
+    with open(f"./result/{num_try}/prompt.txt", "w") as f:
+        for prompt in prompts:
+            f.write(f"{prompt}\n")
+
+        f.write(f"{(corrected / len(test_data)) * 100}%")
