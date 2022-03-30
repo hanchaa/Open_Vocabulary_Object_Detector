@@ -34,8 +34,13 @@ text_inputs = torch.cat([clip.tokenize(c) for c in prompt]).to(device)
 with torch.no_grad():
     text_features = model.encode_text(text_inputs)
 
+similarity_all = []
+predicted_all = []
+corrected = 0
+
 for x_batch, y_batch in tqdm(test_loader):
     image_inputs = x_batch.to(device)
+    target = y_batch.to(device)
 
     # Calculate features
     with torch.no_grad():
@@ -43,5 +48,15 @@ for x_batch, y_batch in tqdm(test_loader):
 
     image_features /= image_features.norm(dim=-1, keepdim=True)
     text_features /= text_features.norm(dim=-1, keepdim=True)
+
     similarity = (100.0 * image_features @ text_features.T).softmax(dim=-1)
-    print(similarity)
+    similarity_all.append(similarity)
+
+    predicted = similarity.argmax(dim=-1)
+    predicted_all.append(predicted)
+
+    corrected += predicted.eq(target).sum().item()
+
+print(similarity_all)
+print(predicted_all)
+print(corrected / len(test_data))
