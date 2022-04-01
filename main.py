@@ -27,18 +27,21 @@ if __name__ == "__main__":
     test_loader = DataLoader(test_data, batch_size=64, shuffle=False)
 
     # Prepare prompts for labels
-    num_try = 1
+    num_try = 0
     prompts = [
-        "a photo of mannequin reflected by mirror",
-        "a photo of person reflected by mirror",
-        "a photo of mannequin not a person",
-        "a photo of person not a mannequin",
-        "a photo of printed person image"
+        [
+            "a photo of mannequin reflected by mirror",
+            "a photo of person reflected by mirror",
+            "a photo of mannequin not a person",
+            "a photo of person not a mannequin",
+            "a photo of printed person image"
+        ]
     ]
-    text_inputs = torch.cat([clip.tokenize(c) for c in prompts]).to(device)
+    text_inputs = torch.vstack([torch.unsqueeze(torch.cat([clip.tokenize(c) for c in prompt]), dim=0) for prompt in prompts]).to(device)
 
     with torch.no_grad():
-        text_features = model.encode_text(text_inputs)
+        text_features = torch.cat([torch.unsqueeze(model.encode_text(text_input), dim=0) for text_input in text_inputs]).to(device)
+        text_features = torch.mean(text_features, dim=0)
 
     similarity_all = []
     predicted_all = []
@@ -71,7 +74,10 @@ if __name__ == "__main__":
     visualize(similarity_all, 10, num_try)
 
     with open(f"./result/{num_try}/prompt.txt", "w") as f:
-        for prompt in prompts:
-            f.write(f"{prompt}\n")
+        for idx, prompt in enumerate(prompts):
+            f.write(f"prompt list {idx}\n")
+            for text in prompt:
+                f.write(f"{text}\n")
+            f.write("\n")
 
         f.write(f"{(corrected / len(test_data)) * 100}%")
