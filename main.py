@@ -1,9 +1,9 @@
 import clip
 import torch
 from torch.utils.data import DataLoader
-from clip.clip import _convert_image_to_rgb
+from clip.clip import _convert_image_to_rgb, BICUBIC
 from torchvision.datasets import ImageFolder
-from torchvision.transforms import Compose, Resize, InterpolationMode, ToTensor, Normalize
+from torchvision.transforms import Compose, Resize, ToTensor, Normalize
 from tqdm import tqdm
 
 from visualize import visualize
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     model, _ = clip.load('ViT-B/32', device)
 
     preprocess = Compose([
-            Resize((224, 224), interpolation=InterpolationMode.BICUBIC),
+            Resize((224, 224), interpolation=BICUBIC),
             _convert_image_to_rgb,
             ToTensor(),
             Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)),
