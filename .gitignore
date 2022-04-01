@@ -133,3 +133,5 @@ dmypy.json
 dataset/
 
 result/
+
+.DS_Store
