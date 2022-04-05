@@ -23,7 +23,7 @@ if __name__ == "__main__":
         ])
 
     # Prepare test data
-    test_data = ImageFolder(root="./dataset/challenge", transform=preprocess)
+    test_data = ImageFolder(root="./dataset/challenge/validation", transform=preprocess)
     test_loader = DataLoader(test_data, batch_size=64, shuffle=False)
 
     # Prepare prompts for labels
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     visualize(similarity_all, 10, num_try)
 
-    with open(f"./result/{num_try}/prompt.txt", "w") as f:
+    with open(f"./result/zero_shot/{num_try}/prompt.txt", "w") as f:
         for idx, prompt in enumerate(prompts):
             f.write(f"prompt list {idx}\n")
             for text in prompt:
