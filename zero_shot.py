@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     print(f"{(corrected / len(test_data)) * 100}%")
 
-    visualize(similarity_all, 10, num_try)
+    visualize(similarity_all.cpu().numpy(), 10, "zero_shot", num_try)
 
     with open(f"./result/zero_shot/{num_try}/prompt.txt", "w") as f:
         for idx, prompt in enumerate(prompts):
