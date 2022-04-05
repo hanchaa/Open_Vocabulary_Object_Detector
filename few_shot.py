@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     print(f"accuracy: {accuracy}%")
 
-    visualize(prediction, 10, "few_shot", len(train_data) // 5)
+    visualize(prediction, 10, "few_shot", f"{len(train_data) // 5}shot")
 
-    with open(f"./result/few_shot/{len(train_data) // 5}/accuracy.txt", "w") as f:
+    with open(f"./result/few_shot/{len(train_data) // 5}shot/accuracy.txt", "w") as f:
         f.write(f"{accuracy}%")
