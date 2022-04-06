@@ -30,11 +30,11 @@ if __name__ == "__main__":
     num_try = 0
     prompts = [
         [
-            "a photo of mannequin reflected by mirror",
-            "a photo of person reflected by mirror",
-            "a photo of mannequin not a person",
-            "a photo of person not a mannequin",
-            "a photo of printed person image"
+            "mannequin reflected by mirror",
+            "person reflected by mirror",
+            "mannequin",
+            "person",
+            "printed person image"
         ]
     ]
     text_inputs = torch.vstack([torch.unsqueeze(torch.cat([clip.tokenize(c) for c in prompt]), dim=0) for prompt in prompts]).to(device)
