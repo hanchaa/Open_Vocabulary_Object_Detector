@@ -42,25 +42,29 @@ if __name__ == "__main__":
             Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)),
         ])
 
-    # Prepare train data
-    train_data = ImageFolder(root="./dataset/challenge/train", transform=preprocess)
-    train_loader = DataLoader(train_data, batch_size=64, shuffle=False)
     # Prepare test data
     test_data = ImageFolder(root="./dataset/challenge/validation", transform=preprocess)
     test_loader = DataLoader(test_data, batch_size=64, shuffle=False)
 
-    train_features, train_labels = get_features(train_loader)
     test_features, test_labels = get_features(test_loader)
 
-    logistic_regressor = LogisticRegression(random_state=0, C=0.316, max_iter=1000, verbose=1)
-    logistic_regressor.fit(train_features, train_labels)
+    for i in [1, 2, 4, 8, 12, 16]:
+        # Prepare train data
+        num_shot = i
+        train_data = ImageFolder(root=f"./dataset/challenge/train/{num_shot}-shot", transform=preprocess)
+        train_loader = DataLoader(train_data, batch_size=64, shuffle=False)
 
-    prediction = logistic_regressor.predict_proba(test_features)
-    accuracy = np.mean(prediction.argmax(axis=-1) == test_labels) * 100
+        train_features, train_labels = get_features(train_loader)
 
-    print(f"accuracy: {accuracy}%")
+        logistic_regressor = LogisticRegression(random_state=0, C=0.3, max_iter=1000)
+        logistic_regressor.fit(train_features, train_labels)
 
-    visualize(prediction, 10, "few_shot", f"{len(train_data) // 5}shot")
+        prediction = logistic_regressor.predict_proba(test_features)
+        accuracy = np.mean(prediction.argmax(axis=-1) == test_labels) * 100
 
-    with open(f"./result/few_shot/{len(train_data) // 5}shot/accuracy.txt", "w") as f:
-        f.write(f"{accuracy}%")
+        print(f"{num_shot}-shot / accuracy: {accuracy}%")
+
+        visualize(prediction, 10, "few_shot", f"{num_shot}-shot")
+
+        with open(f"./result/few_shot/{num_shot}-shot/accuracy.txt", "w") as f:
+            f.write(f"{accuracy}%")
