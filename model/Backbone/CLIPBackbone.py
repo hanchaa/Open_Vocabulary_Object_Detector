@@ -13,20 +13,23 @@ class CLIPBackbone(Backbone):
 
         clip_image_encoder = clip.load(backbone)[0].visual
 
+        clip_image_encoder.eval()
         for child in clip_image_encoder.children():
             for param in child.parameters():
                 param.requires_grad = False
 
+        self.relu = nn.ReLU()
+
         self.conv1 = nn.Sequential(
             clip_image_encoder.conv1,
             clip_image_encoder.bn1,
-            clip_image_encoder.relu,
+            self.relu,
             clip_image_encoder.conv2,
             clip_image_encoder.bn2,
-            clip_image_encoder.relu,
+            self.relu,
             clip_image_encoder.conv3,
             clip_image_encoder.bn3,
-            clip_image_encoder.relu,
+            self.relu,
             clip_image_encoder.avgpool
         )
         self.conv2 = clip_image_encoder.layer1
