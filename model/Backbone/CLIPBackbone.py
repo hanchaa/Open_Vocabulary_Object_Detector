@@ -1,12 +1,21 @@
 import clip
+from detectron2.modeling import BACKBONE_REGISTRY, Backbone, ShapeSpec
 from torch import nn
 
 
-class ImageEncoder(nn.Module):
+@BACKBONE_REGISTRY.register()
+class CLIPBackbone(Backbone):
     def __init__(self, backbone: str):
         super().__init__()
 
+        if backbone not in ['RN50', 'RN101']:
+            raise Exception("Backbone should be RN50 or RN101")
+
         clip_image_encoder = clip.load(backbone)[0].visual
+
+        for child in clip_image_encoder.children():
+            for param in child.parameters():
+                param.requires_grad = False
 
         self.conv1 = nn.Sequential(
             clip_image_encoder.conv1,
@@ -34,4 +43,12 @@ class ImageEncoder(nn.Module):
         c4 = self.conv4(c3)
         c5 = self.conv5(c4)
 
-        return c2, c3, c4, c5
+        return {"c2": c2, "c3": c3, "c4": c4, "c5": c5}
+
+    def output_shape(self):
+        return {
+            "c2": ShapeSpec(channels=256, stride=4),
+            "c3": ShapeSpec(channels=512, stride=8),
+            "c4": ShapeSpec(channels=1024, stride=16),
+            "c5": ShapeSpec(channels=2048, stride=32)
+        }
