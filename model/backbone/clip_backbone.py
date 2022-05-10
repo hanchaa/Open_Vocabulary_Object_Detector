@@ -9,7 +9,7 @@ class CLIPBackbone(Backbone):
         super().__init__()
 
         if backbone not in ['RN50', 'RN101']:
-            raise Exception("Backbone should be RN50 or RN101")
+            raise Exception("backbone should be RN50 or RN101")
 
         clip_image_encoder = clip.load(backbone)[0].visual
 
