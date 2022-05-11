@@ -5,7 +5,7 @@ from torch import nn
 
 @BACKBONE_REGISTRY.register()
 class CLIPBackbone(Backbone):
-    def __init__(self, backbone: str):
+    def __init__(self, backbone: str, norm="BN"):
         super().__init__()
 
         if backbone not in ['RN50', 'RN101']:
@@ -36,6 +36,13 @@ class CLIPBackbone(Backbone):
         self.conv3 = clip_image_encoder.layer2
         self.conv4 = clip_image_encoder.layer3
         self.conv5 = clip_image_encoder.layer4
+
+        if norm == "SyncBN":
+            self.conv1 = nn.SyncBatchNorm.convert_sync_batchnorm(self.conv1)
+            self.conv2 = nn.SyncBatchNorm.convert_sync_batchnorm(self.conv2)
+            self.conv3 = nn.SyncBatchNorm.convert_sync_batchnorm(self.conv3)
+            self.conv4 = nn.SyncBatchNorm.convert_sync_batchnorm(self.conv4)
+            self.conv5 = nn.SyncBatchNorm.convert_sync_batchnorm(self.conv5)
 
     def forward(self, x):
         x = x.type(self.conv1[0].weight.dtype)

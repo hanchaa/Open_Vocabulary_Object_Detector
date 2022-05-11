@@ -11,7 +11,9 @@ model = default_configs['model']
 train = default_configs['train']
 
 model.backbone.update(
-    bottom_up=LazyCall(CLIPBackbone)(backbone="RN101"),
+    bottom_up=LazyCall(CLIPBackbone)(
+        backbone="RN101", norm="SyncBN"
+    ),
     in_features=["c2", "c3", "c4", "c5"]
 )
 
