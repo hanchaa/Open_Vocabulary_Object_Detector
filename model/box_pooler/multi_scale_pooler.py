@@ -69,8 +69,8 @@ class MultiScaleROIPooler(ROIPooler):
 
         scaled_box_lists = []
         for boxes in box_lists:
-            scaled_boxes_half_width = (boxes.tensor[:, 2] - boxes.tensor[:, 0]) * (1.5 ** 0.5)
-            scaled_boxes_half_height = (boxes.tensor[:, 3] - boxes.tensor[:, 1]) * (1.5 ** 0.5)
+            scaled_boxes_half_width = (boxes.tensor[:, 2] - boxes.tensor[:, 0]) * 1.5 / 2
+            scaled_boxes_half_height = (boxes.tensor[:, 3] - boxes.tensor[:, 1]) * 1.5 / 2
             boxes_ctr_x = (boxes.tensor[:, 0] + boxes.tensor[:, 2]) / 2
             boxes_ctr_y = (boxes.tensor[:, 1] + boxes.tensor[:, 3]) / 2
 
@@ -101,7 +101,7 @@ class MultiScaleROIPooler(ROIPooler):
         output_size = self.output_size[0]
 
         output = _create_zeros(pooler_fmt_boxes, num_channels, output_size, output_size, x[0])
-        scaled_output = _create_zeros(pooler_fmt_boxes, num_channels, output_size, output_size, x[0])
+        scaled_output = _create_zeros(pooler_fmt_scaled_boxes, num_channels, output_size, output_size, x[0])
 
         for level, pooler in enumerate(self.level_poolers):
             inds = nonzero_tuple(level_assignments == level)[0]
