@@ -96,7 +96,7 @@ train.max_iter = (100170 // dataloader["train"]["total_batch_size"]) * num_epoch
 
 lr_multiplier = LazyCall(WarmupParamScheduler)(
     scheduler=CosineParamScheduler(1.0, 0.0),
-    warmup_length=0.005,
+    warmup_length=500 / train.max_iter,
     warmup_factor=0.067,
 )
 
