@@ -108,7 +108,7 @@ optimizer = LazyCall(torch.optim.AdamW)(
     weight_decay=1e-4,
 )
 
-wandb = {'log': True, 'proj_name': 'ov-od', 'group_name': 'ov-od', 'run_name': 'test'}  # add
-
 train.checkpointer.period = 20000
-train.output_dir = './output/Lazy/{}'.format(os.path.basename(__file__)[:-3])
+train.output_dir = './output/{}'.format(os.path.basename(__file__)[:-3])
+
+wandb = {'log': True, 'proj_name': 'ov-od', 'group_name': 'ov-od', 'run_name': 'test'}  # add
