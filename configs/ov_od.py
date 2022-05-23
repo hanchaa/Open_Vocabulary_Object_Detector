@@ -48,10 +48,13 @@ model.roi_heads.update(
         classifier=LazyCall(OpenVocabularyClassifier)(
             input_shape="${..input_shape}",
             num_classes="${..num_classes}",
-            prompt_path="prompt/lvis_clip_prompt.npy"
+            prompt_path="prompt/lvis_clip_prompt.npy",
+            prompt_dim=512
         )
     )
 )
+
+model.roi_heads.box_head["input_shape"] = ShapeSpec(channels=256, width=7, height=7)
 
 image_size = 896
 
