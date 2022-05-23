@@ -28,7 +28,7 @@ from detectron2.engine.defaults import create_ddp_model
 from detectron2.evaluation import inference_on_dataset, print_csv_format
 from detectron2.utils import comm
 
-
+from hooks.wandb_log import WanDBLog
 from data.datasets import lvis_v1
 
 sys.path.insert(0, 'third_party/CenterNet2/')
@@ -84,6 +84,7 @@ def do_train(args, cfg):
         trainer=trainer,
     )
     train_hooks = [
+        WanDBLog(optimizer=optim) if comm.is_main_process() else None,
         hooks.IterationTimer(),
         hooks.LRScheduler(scheduler=instantiate(cfg.lr_multiplier)),
         hooks.PeriodicCheckpointer(checkpointer, **cfg.train.checkpointer)
