@@ -58,35 +58,25 @@ model.roi_heads.box_head["input_shape"] = ShapeSpec(channels=256, width=7, heigh
 
 image_size = 896
 
-dataloader.train.update(
-    dataset={
-        "names": "lvis_v1_train_norare"
-    },
-    sampler=LazyCall(RepeatFactorTrainingSampler)(
-        repeat_factors=LazyCall(RepeatFactorTrainingSampler.repeat_factors_from_category_frequency)(
-            dataset_dicts="${dataloader.train.dataset}", repeat_thresh=0.001
-        )
-    ),
-    mapper={
-        "is_train": True,
-        "augmentations": [
-            LazyCall(transforms.ResizeScale)(
-                min_scale=0.1, max_scale=2.0, target_height=image_size, target_width=image_size
-            ),
-            LazyCall(transforms.FixedSizeCrop)(
-                crop_size=[image_size, image_size]
-            ),
-            LazyCall(transforms.RandomFlip)(
-                horizontal=True
-            )
-        ],
-        "image_format": "BGR",
-        "use_instance_mask": False,
-        "recompute_boxes": True
-    },
-    total_batch_size=16,
-    num_workers=8
+dataloader.train.dataset.names = "lvis_v1_train_norare"
+dataloader.train.sampler = LazyCall(RepeatFactorTrainingSampler)(
+    repeat_factors=LazyCall(RepeatFactorTrainingSampler.repeat_factors_from_category_frequency)(
+        dataset_dicts="${dataloader.train.dataset}", repeat_thresh=0.001
+    )
 )
+dataloader.train.mapper.augmentations = [
+    LazyCall(transforms.ResizeScale)(
+        min_scale=0.1, max_scale=2.0, target_height=image_size, target_width=image_size
+    ),
+    LazyCall(transforms.FixedSizeCrop)(
+        crop_size=[image_size, image_size]
+    ),
+    LazyCall(transforms.RandomFlip)(
+        horizontal=True
+    )
+]
+dataloader.train.total_batch_size = 16
+dataloader.train.num_workers = 8
 
 dataloader.test.dataset.names = "lvis_v1_val"
 dataloader.evaluator = LazyCall(LVISEvaluator)(
