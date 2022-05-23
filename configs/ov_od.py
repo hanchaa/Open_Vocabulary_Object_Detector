@@ -81,7 +81,7 @@ dataloader.train.update(
         "use_instance_mask": False,
         "recompute_boxes": True
     },
-    total_batch_size=2,
+    total_batch_size=16,
     num_workers=8
 )
 
@@ -91,12 +91,13 @@ dataloader.evaluator = LazyCall(LVISEvaluator)(
     tasks=("bbox",)
 )
 
-num_epochs = 200
+num_epochs = 100
 train.max_iter = (100170 // dataloader["train"]["total_batch_size"]) * num_epochs
 
+warmup_step = 500
 lr_multiplier = LazyCall(WarmupParamScheduler)(
     scheduler=CosineParamScheduler(1.0, 0.0),
-    warmup_length=500 / train.max_iter,
+    warmup_length=warmup_step / train.max_iter,
     warmup_factor=0.067,
 )
 
@@ -111,4 +112,8 @@ optimizer = LazyCall(torch.optim.AdamW)(
 train.checkpointer.period = 20000
 train.output_dir = './output/{}'.format(os.path.basename(__file__)[:-3])
 
-wandb = {'log': True, 'proj_name': 'ov-od', 'group_name': 'ov-od', 'run_name': 'test'}  # add
+wandb = {'log': True, 'proj_name': 'ov-od', 'group_name': 'ov-od', 'run_name': 'RN101',
+         "config": {
+             "lr": optimizer["lr"],
+             "warmup_step": warmup_step
+         }}
