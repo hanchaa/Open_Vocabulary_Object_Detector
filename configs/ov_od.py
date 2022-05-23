@@ -102,8 +102,9 @@ optimizer = LazyCall(torch.optim.AdamW)(
     weight_decay=1e-4,
 )
 
-train.checkpointer.period = 20000
+train.checkpointer.period = 100170 // dataloader["train"]["total_batch_size"]
 train.output_dir = './output/{}'.format(os.path.basename(__file__)[:-3])
+train.eval_period = (100170 // dataloader["train"]["total_batch_size"]) // 2
 
 wandb = {'log': True, 'proj_name': 'ov-od', 'group_name': 'ov-od', 'run_name': 'RN101',
          "config": {
