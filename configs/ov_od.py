@@ -35,7 +35,7 @@ model.backbone.update(
 model.roi_heads.update(
     num_classes=1203,
     box_pooler=LazyCall(MultiScaleROIPooler)(
-        output_shape=7,
+        output_size=7,
         scales=(1.0 / 4, 1.0 / 8, 1.0 / 16, 1.0 / 32),
         sampling_ratio=0,
         pooler_type="ROIAlignV2"
