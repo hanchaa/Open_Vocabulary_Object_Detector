@@ -28,6 +28,9 @@ from detectron2.engine.defaults import create_ddp_model
 from detectron2.evaluation import inference_on_dataset, print_csv_format
 from detectron2.utils import comm
 
+
+from data.datasets import lvis_v1
+
 sys.path.insert(0, 'third_party/CenterNet2/')
 sys.path.insert(0, 'third_party/Deformable-DETR')
 logger = logging.getLogger("detectron2")
@@ -104,7 +107,7 @@ def do_train(args, cfg):
     else:
         start_iter = 0
 
-    if cfg.wandb.log:
+    if cfg.wandb.log and comm.is_main_process():
         wandb.init(
             project=cfg.wandb.proj_name,
             group=cfg.wandb.group_name,
