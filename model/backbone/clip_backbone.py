@@ -1,4 +1,5 @@
 import clip
+import torch
 from detectron2.modeling import BACKBONE_REGISTRY, Backbone, ShapeSpec
 from torch import nn
 
@@ -31,11 +32,11 @@ class CLIPBackbone(Backbone):
             clip_image_encoder.bn3,
             self.relu,
             clip_image_encoder.avgpool
-        )
-        self.conv2 = clip_image_encoder.layer1
-        self.conv3 = clip_image_encoder.layer2
-        self.conv4 = clip_image_encoder.layer3
-        self.conv5 = clip_image_encoder.layer4
+        ).to(torch.float)
+        self.conv2 = clip_image_encoder.layer1.to(torch.float)
+        self.conv3 = clip_image_encoder.layer2.to(torch.float)
+        self.conv4 = clip_image_encoder.layer3.to(torch.float)
+        self.conv5 = clip_image_encoder.layer4.to(torch.float)
 
         if norm == "SyncBN":
             self.conv1 = nn.SyncBatchNorm.convert_sync_batchnorm(self.conv1)
