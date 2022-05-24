@@ -5,7 +5,7 @@ import wandb
 
 class WanDBLog(HookBase):
     def __init__(self, optimizer):
-        self.__optimizer = optimizer
+        self._optimizer = optimizer
 
     def after_step(self):
         storage = get_event_storage()
@@ -16,5 +16,5 @@ class WanDBLog(HookBase):
             "loss_box_reg": log["loss_box_reg"][0],
             "loss_rpn_cls": log["loss_rpn_cls"][0],
             "loss_rpn_loc": log["loss_rpn_loc"][0],
-            "lr": self.__optimizer.param_groups[0]["lr"]
+            "lr": self._optimizer.param_groups[0]["lr"]
         })
