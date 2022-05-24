@@ -118,9 +118,11 @@ def do_train(args, cfg):
             resume=True if args.resume and checkpointer.has_checkpoint() else False
         )
 
-        wandb.watch(model)
+        wandb.watch(model, log="all", log_graph=True)
 
     trainer.train(start_iter, cfg.train.max_iter)
+
+    wandb.finish()
 
 
 def main(args):
