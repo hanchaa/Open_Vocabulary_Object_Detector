@@ -42,6 +42,10 @@ def do_test(cfg, model):
             model, instantiate(cfg.dataloader.test), instantiate(cfg.dataloader.evaluator)
         )
         print_csv_format(ret)
+
+        if comm.is_main_process():
+            wandb.log(ret["bbox"])
+
         return ret
 
 
@@ -118,7 +122,7 @@ def do_train(args, cfg):
             resume=True if args.resume and checkpointer.has_checkpoint() else False
         )
 
-        wandb.watch(model, log="all", log_graph=True)
+        wandb.watch(model, log="all")
 
     trainer.train(start_iter, cfg.train.max_iter)
 
