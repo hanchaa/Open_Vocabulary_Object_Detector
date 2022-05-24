@@ -22,7 +22,7 @@ class OpenVocabularyClassifier(nn.Module):
         assert self.prompt_embedding.shape[0] == prompt_dim
         assert self.prompt_embedding.shape[1] == num_classes
 
-        self.background_embedding = torch.randn((prompt_dim, 1), requires_grad=True, device="cuda")
+        self.background_embedding = nn.Parameter(torch.randn((prompt_dim, 1)))
 
         self.temperature = temperature
 
