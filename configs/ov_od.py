@@ -23,6 +23,8 @@ dataloader = default_configs['dataloader']
 model = default_configs['model']
 train = default_configs['train']
 
+del default_configs
+
 model.backbone.update(
     bottom_up=LazyCall(CLIPBackbone)(
         backbone="RN101", norm="SyncBN"
@@ -75,8 +77,8 @@ dataloader.train.mapper.augmentations = [
         horizontal=True
     )
 ]
-dataloader.train.total_batch_size = 16
-dataloader.train.num_workers = 8
+dataloader.train.total_batch_size = 64
+dataloader.train.num_workers = 16
 
 dataloader.test.dataset.names = "lvis_v1_val"
 dataloader.evaluator = LazyCall(LVISEvaluator)(
@@ -87,7 +89,7 @@ dataloader.evaluator = LazyCall(LVISEvaluator)(
 num_epochs = 100
 train.max_iter = (100170 // dataloader["train"]["total_batch_size"]) * num_epochs
 
-warmup_step = 500
+warmup_step = 2000
 lr_multiplier = LazyCall(WarmupParamScheduler)(
     scheduler=CosineParamScheduler(1.0, 0.0),
     warmup_length=warmup_step / train.max_iter,
@@ -98,13 +100,13 @@ optimizer = LazyCall(torch.optim.AdamW)(
     params=LazyCall(get_default_optimizer_params)(
         weight_decay_norm=0.0
     ),
-    lr=0.0008,
+    lr=0.001,
     weight_decay=1e-4,
 )
 
-train.checkpointer.period = 100170 // dataloader["train"]["total_batch_size"]
+train.checkpointer.period = (100170 // dataloader["train"]["total_batch_size"]) * 2
 train.output_dir = './output/{}'.format(os.path.basename(__file__)[:-3])
-train.eval_period = (100170 // dataloader["train"]["total_batch_size"]) // 2
+train.eval_period = (100170 // dataloader["train"]["total_batch_size"]) * 20
 
 wandb = {'log': True, 'proj_name': 'ov-od', 'group_name': 'ov-od', 'run_name': 'RN101',
          "config": {
