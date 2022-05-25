@@ -57,7 +57,7 @@ model.roi_heads.update(
             prompt_dim=512,
             use_binary_ce="${..use_binary_ce}"
         ),
-        use_binary_ce=False
+        use_binary_ce=True
     )
 )
 
