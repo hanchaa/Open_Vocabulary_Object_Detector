@@ -45,6 +45,7 @@ model.roi_heads.update(
     box_predictor=LazyCall(OVFastRCNNOutputLayers)(
         input_shape=ShapeSpec(channels=1024, height=None, width=None, stride=None),
         test_score_thresh=0.0001,
+        cls_agnostic_bbox_reg=True,
         box2box_transform=LazyCall(Box2BoxTransform)(weights=[10, 10, 5, 5]),
         num_classes="${..num_classes}",
         classifier=LazyCall(OpenVocabularyClassifier)(
