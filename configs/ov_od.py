@@ -108,7 +108,7 @@ train.checkpointer.period = (100170 // dataloader["train"]["total_batch_size"]) 
 train.output_dir = './output/{}'.format(os.path.basename(__file__)[:-3])
 train.eval_period = (100170 // dataloader["train"]["total_batch_size"]) * 20
 
-wandb = {'log': True, 'proj_name': 'ov-od', 'group_name': 'ov-od', 'run_name': 'RN101',
+wandb = {'log': True, 'entity': 'hanchaa', 'proj_name': 'ov-od', 'group_name': 'ov-od',
          "config": {
              "lr": optimizer["lr"],
              "warmup_step": warmup_step

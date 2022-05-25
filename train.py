@@ -116,8 +116,7 @@ def do_train(args, cfg):
         wandb.init(
             project=cfg.wandb.proj_name,
             group=cfg.wandb.group_name,
-            name=cfg.wandb.run_name,
-            entity="hanchaa",
+            entity=cfg.wandb.entity,
             config=cfg.wandb.config,
             resume=True if args.resume and checkpointer.has_checkpoint() else False
         )
