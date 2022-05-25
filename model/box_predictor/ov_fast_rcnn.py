@@ -82,7 +82,7 @@ class OVFastRCNNOutputLayers(FastRCNNOutputLayers):
                 loss_cls = scores.sum() * 0.0  # connect the gradient
 
             else:
-                target = torch.ones_like(scores)
+                target = torch.zeros_like(scores)
 
                 fg_idx = torch.where(gt_classes != self.num_classes)[0]
                 target[fg_idx, gt_classes[fg_idx]] = 1
