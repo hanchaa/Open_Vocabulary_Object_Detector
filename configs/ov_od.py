@@ -32,6 +32,8 @@ model.backbone.update(
     in_features=["c2", "c3", "c4", "c5"]
 )
 
+# train.init_checkpoint = "output/ov_od/model_0006255.pth"
+
 [model.roi_heads.pop(k) for k in ["mask_in_features", "mask_pooler", "mask_head"]]
 
 model.roi_heads.update(
@@ -52,8 +54,10 @@ model.roi_heads.update(
             input_shape="${..input_shape}",
             num_classes="${..num_classes}",
             prompt_path="prompt/lvis_clip_prompt.npy",
-            prompt_dim=512
-        )
+            prompt_dim=512,
+            use_binary_ce="${..use_binary_ce}"
+        ),
+        use_binary_ce=True
     )
 )
 
@@ -78,7 +82,7 @@ dataloader.train.mapper.augmentations = [
         horizontal=True
     )
 ]
-dataloader.train.total_batch_size = 64
+dataloader.train.total_batch_size = 256
 dataloader.train.num_workers = 16
 
 dataloader.test.dataset.names = "lvis_v1_val"
@@ -90,7 +94,7 @@ dataloader.evaluator = LazyCall(LVISEvaluator)(
 num_epochs = 100
 train.max_iter = (100170 // dataloader["train"]["total_batch_size"]) * num_epochs
 
-warmup_step = 2000
+warmup_step = 800
 lr_multiplier = LazyCall(WarmupParamScheduler)(
     scheduler=CosineParamScheduler(1.0, 0.0),
     warmup_length=warmup_step / train.max_iter,
@@ -101,7 +105,7 @@ optimizer = LazyCall(torch.optim.AdamW)(
     params=LazyCall(get_default_optimizer_params)(
         weight_decay_norm=0.0
     ),
-    lr=0.001,
+    lr=0.0005,
     weight_decay=1e-4,
 )
 
@@ -109,7 +113,7 @@ train.checkpointer.period = (100170 // dataloader["train"]["total_batch_size"]) 
 train.output_dir = './output/{}'.format(os.path.basename(__file__)[:-3])
 train.eval_period = (100170 // dataloader["train"]["total_batch_size"]) * 20
 
-wandb = {'log': True, 'entity': 'hanchaa', 'proj_name': 'ov-od', 'group_name': 'ov-od',
+wandb = {'log': True, 'entity': 'hanchaa', 'proj_name': 'ov-od', 'group_name': 'RN101',
          "config": {
              "lr": optimizer["lr"],
              "warmup_step": warmup_step
