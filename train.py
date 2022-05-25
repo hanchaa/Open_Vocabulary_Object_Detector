@@ -118,7 +118,8 @@ def do_train(args, cfg):
             group=cfg.wandb.group_name,
             entity=cfg.wandb.entity,
             config=cfg.wandb.config,
-            resume=True if args.resume and checkpointer.has_checkpoint() else False
+            resume=True if args.resume and checkpointer.has_checkpoint() else False,
+            id=cfg.wandb.id if args.resume and checkpointer.has_checkpoint() else None
         )
 
         wandb.watch(model, log="all")
