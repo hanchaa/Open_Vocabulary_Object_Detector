@@ -57,7 +57,8 @@ model.roi_heads.update(
             prompt_dim=512,
             use_binary_ce="${..use_binary_ce}"
         ),
-        use_binary_ce=True
+        use_binary_ce=True,
+        cat_freq_path="datasets/metadata/lvis_v1_train_cat_info_norare.json"
     )
 )
 

@@ -4,9 +4,11 @@ import torch
 import torch.nn.functional as F
 from detectron2.layers import ShapeSpec, cat, cross_entropy
 from detectron2.modeling.roi_heads.fast_rcnn import FastRCNNOutputLayers
-from detectron2.utils.events import get_event_storage
-from detectron2.structures import Instances
 from detectron2.modeling.roi_heads.fast_rcnn import fast_rcnn_inference
+from detectron2.structures import Instances
+from detectron2.utils.events import get_event_storage
+
+from ..utils import load_class_freq, get_fed_loss_inds
 
 
 def _log_classification_stats(pred_logits, gt_classes, prefix="fast_rcnn"):
@@ -45,13 +47,30 @@ class OVFastRCNNOutputLayers(FastRCNNOutputLayers):
                  *,
                  classifier,
                  use_binary_ce,
+                 cat_freq_path='',
+                 fed_loss_freq_weight=0.5,
+                 fed_loss_num_cat=50,
                  **kwargs
                  ):
         super().__init__(input_shape, **kwargs)
 
         del self.cls_score
         self.cls_score = classifier
+
         self.use_binary_ce = use_binary_ce
+        self.fed_loss_num_cat = fed_loss_num_cat
+
+        if use_binary_ce:
+            freq_weight = load_class_freq(cat_freq_path, fed_loss_freq_weight)
+            self.register_buffer("freq_weight", freq_weight)
+
+            if len(self.freq_weight) < self.num_classes:
+                self.freq_weight = torch.cat(
+                    [self.freq_weight, self.freq_weight.new_zeros(self.num_classes - len(self.freq_weight))]
+                )
+
+        else:
+            self.freq_weight = None
 
     def losses(self, predictions, proposals):
         scores, proposal_deltas = predictions
@@ -78,16 +97,7 @@ class OVFastRCNNOutputLayers(FastRCNNOutputLayers):
             proposal_boxes = gt_boxes = torch.empty((0, 4), device=proposal_deltas.device)
 
         if self.use_binary_ce:
-            if gt_classes.numel() == 0:
-                loss_cls = scores.sum() * 0.0  # connect the gradient
-
-            else:
-                target = torch.zeros_like(scores)
-
-                fg_idx = torch.where(gt_classes != self.num_classes)[0]
-                target[fg_idx, gt_classes[fg_idx]] = 1
-
-                loss_cls = F.binary_cross_entropy_with_logits(scores, target, reduction="mean")
+            loss_cls = self.bce_loss(scores, gt_classes)
 
         else:
             loss_cls = cross_entropy(scores, gt_classes, reduction="mean")
@@ -99,6 +109,29 @@ class OVFastRCNNOutputLayers(FastRCNNOutputLayers):
             ),
         }
         return {k: v * self.loss_weight.get(k, 1.0) for k, v in losses.items()}
+
+    def bce_loss(self, pred_class_logits, gt_classes):
+        if pred_class_logits.numel() == 0:
+            return pred_class_logits.new_zeros([1])[0]
+
+        target = torch.zeros_like(pred_class_logits)
+
+        fg_idx = torch.where(gt_classes != self.num_classes)[0]
+        target[fg_idx, gt_classes[fg_idx]] = 1
+
+        appeared = get_fed_loss_inds(
+            gt_classes,
+            num_sample_cats=self.fed_loss_num_cat,
+            num_classes=self.num_classes,
+            weight=self.freq_weight
+        )
+        appeared_mask = appeared.new_zeros(self.num_classes + 1)
+        appeared_mask[appeared] = 1
+        appeared_mask = appeared_mask[:self.num_classes]
+        fed_weight = appeared_mask.view(1, self.num_classes).expand(target.shape[0], self.num_classes)
+
+        loss_cls = F.binary_cross_entropy_with_logits(pred_class_logits, target, reduction="none")
+        return torch.sum(loss_cls * fed_weight) / target.shape[0]
 
     def inference(self, predictions: Tuple[torch.Tensor, torch.Tensor], proposals: List[Instances]):
         """
