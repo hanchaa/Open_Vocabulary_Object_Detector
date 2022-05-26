@@ -29,6 +29,7 @@ class OpenVocabularyClassifier(nn.Module):
 
     def forward(self, x):
         x = self.projection(x)
+        x = normalize(x, dim=-1)
 
         if self.background_embedding is not None:
             classifier = torch.cat([self.prompt_embedding, normalize(self.background_embedding, dim=0)], dim=1)
