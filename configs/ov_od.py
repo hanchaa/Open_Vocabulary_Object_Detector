@@ -94,13 +94,6 @@ dataloader.evaluator = LazyCall(LVISEvaluator)(
 num_epochs = 100
 train.max_iter = (100170 // dataloader["train"]["total_batch_size"]) * num_epochs
 
-warmup_step = 800
-lr_multiplier = LazyCall(WarmupParamScheduler)(
-    scheduler=CosineParamScheduler(1.0, 0.0),
-    warmup_length=warmup_step / train.max_iter,
-    warmup_factor=0.067,
-)
-
 optimizer = LazyCall(torch.optim.AdamW)(
     params=LazyCall(get_default_optimizer_params)(
         weight_decay_norm=0.0
@@ -109,6 +102,15 @@ optimizer = LazyCall(torch.optim.AdamW)(
     weight_decay=1e-4,
 )
 
+lr_scheduler = {
+    "first_cycle_steps": 100170 // dataloader["train"]["total_batch_size"] * 20,
+    "cycle_mult": 1,
+    "max_lr": optimizer["lr"],
+    "min_lr": 0.00005,
+    "warmup_steps": 800,
+    "gamma": 0.8
+}
+
 train.checkpointer.period = (100170 // dataloader["train"]["total_batch_size"]) * 2
 train.output_dir = './output/{}'.format(os.path.basename(__file__)[:-3])
 train.eval_period = (100170 // dataloader["train"]["total_batch_size"]) * 20
@@ -116,6 +118,6 @@ train.eval_period = (100170 // dataloader["train"]["total_batch_size"]) * 20
 wandb = {'log': True, 'entity': 'hanchaa', 'proj_name': 'ov-od', 'group_name': 'RN101',
          "config": {
              "lr": optimizer["lr"],
-             "warmup_step": warmup_step,
+             "warmup_steps": lr_scheduler["warmup_steps"],
              "use_bce_loss": True
          }}

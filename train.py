@@ -28,6 +28,8 @@ from detectron2.engine.defaults import create_ddp_model
 from detectron2.evaluation import inference_on_dataset, print_csv_format
 from detectron2.utils import comm
 
+from cosine_annealing_warmup import CosineAnnealingWarmupRestarts
+
 from hooks.wandb_log import WanDBLog
 from data.datasets import lvis_v1
 
@@ -76,6 +78,15 @@ def do_train(args, cfg):
 
     cfg.optimizer.params.model = model
     optim = instantiate(cfg.optimizer)
+    lr_scheduler = CosineAnnealingWarmupRestarts(
+        optimizer=optim,
+        first_cycle_steps=cfg.lr_scheduler["first_cycle_steps"],
+        cycle_mult=cfg.lr_scheduler["cycle_mult"],
+        max_lr=cfg.lr_scheduler["max_lr"],
+        min_lr=cfg.lr_scheduler["min_lr"],
+        warmup_steps=cfg.lr_scheduler["warmup_steps"],
+        gamma=cfg.lr_scheduler["gamma"]
+    )
 
     train_loader = instantiate(cfg.dataloader.train)
 
@@ -86,11 +97,12 @@ def do_train(args, cfg):
         cfg.train.output_dir,
         optimizer=optim,
         trainer=trainer,
+        lr_scheduler=lr_scheduler
     )
     train_hooks = [
         WanDBLog(optimizer=optim) if comm.is_main_process() else None,
         hooks.IterationTimer(),
-        hooks.LRScheduler(scheduler=instantiate(cfg.lr_multiplier)),
+        hooks.LRScheduler(scheduler=lr_scheduler),
         hooks.PeriodicCheckpointer(checkpointer, **cfg.train.checkpointer)
         if comm.is_main_process()
         else None,
